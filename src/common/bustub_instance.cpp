@@ -68,8 +68,9 @@ BustubInstance::BustubInstance(const std::string &db_file_name) {
 
 auto BustubInstance::ExecuteSql(const std::string &sql) -> std::vector<std::string> {
   if (!sql.empty() && sql[0] == '\\') {
+    auto internal_sql = StringUtil::Strip(sql, '\n');
     // Internal meta-commands, like in `psql`.
-    if (sql == "\\dt") {
+    if (internal_sql == "\\dt") {
       std::string result;
       auto table_names = catalog_->GetTableNames();
       for (const auto &name : table_names) {
@@ -78,8 +79,8 @@ auto BustubInstance::ExecuteSql(const std::string &sql) -> std::vector<std::stri
       }
       return {result};
     }
-    if (StringUtil::StartsWith(sql, "\\d ")) {
-      auto table_name = std::string(sql.cbegin() + 3, sql.cend());
+    if (StringUtil::StartsWith(internal_sql, "\\d ")) {
+      auto table_name = std::string(internal_sql.cbegin() + 3, internal_sql.cend());
       auto table_info = catalog_->GetTable(table_name);
       if (table_info == nullptr) {
         return {"table not found"};
